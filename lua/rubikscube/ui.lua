@@ -554,7 +554,7 @@ function M.open(session, on_close)
     vim.api.nvim_set_current_buf(buf)
   elseif mode == "float" then
     local total_w, total_h = vim.o.columns, vim.o.lines
-    local w = math.min(120, math.max(40, total_w - 4))
+    local w = math.min(140, math.max(40, total_w - 4))
     local h = math.min(18, math.max(15, total_h - 4))
     vim.api.nvim_open_win(buf, true, {
       relative = "editor",

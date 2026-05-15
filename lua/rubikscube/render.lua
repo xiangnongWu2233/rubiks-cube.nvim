@@ -287,7 +287,7 @@ M.format_time = format_time
 
 -- Default hint string when the caller doesn't supply one. ui.lua builds a
 -- dynamic version from the current keymap config and passes it via `hints`.
-local DEFAULT_HINTS = "[<Space>]timer  [s]cramble  [<CR>]reset  [?]help  [q]uit"
+local DEFAULT_HINTS = "[<Space>]timer  [s]cramble  [S]olve  [<CR>]reset  [?]help  [q]uit"
 M.DEFAULT_HINTS = DEFAULT_HINTS
 
 -- Status line text builder.
