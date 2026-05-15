@@ -1,0 +1,152 @@
+*rubikscube.txt*
+                                For Neovim >= 0.10    Last change: 2026 May 15
+
+==============================================================================
+Table of Contents                               *rubikscube-table-of-contents*
+
+1. rubiks-cube.nvim                              |rubikscube-rubiks-cube.nvim|
+  - Requirements                    |rubikscube-rubiks-cube.nvim-requirements|
+  - Installation                    |rubikscube-rubiks-cube.nvim-installation|
+  - Usage                                  |rubikscube-rubiks-cube.nvim-usage|
+  - Features                            |rubikscube-rubiks-cube.nvim-features|
+  - Configuration                  |rubikscube-rubiks-cube.nvim-configuration|
+  - Colors                                |rubikscube-rubiks-cube.nvim-colors|
+  - Commands                            |rubikscube-rubiks-cube.nvim-commands|
+2. Links                                                    |rubikscube-links|
+
+==============================================================================
+1. rubiks-cube.nvim                              *rubikscube-rubiks-cube.nvim*
+
+A playable Rubik’s cube inside Neovim — isometric ASCII render, full move
+set in Singmaster notation, a timer, and best-time persistence.
+
+
+REQUIREMENTS                        *rubikscube-rubiks-cube.nvim-requirements*
+
+- Neovim **0.10+** (uses `vim.uv`)
+- `termguicolors` enabled (recommended; falls back to cterm approximations otherwise)
+
+
+INSTALLATION                        *rubikscube-rubiks-cube.nvim-installation*
+
+
+LAZY.NVIM ~
+
+>lua
+    {
+      "xiangnongWu2233/rubiks-cube.nvim",
+      cmd = "Rubikscube",
+      opts = {},  -- or pass any config table; see below
+    }
+<
+
+
+PACKER.NVIM ~
+
+>lua
+    use {
+      "xiangnongWu2233/rubiks-cube.nvim",
+      cmd = "Rubikscube",
+      config = function() require("rubikscube").setup({}) end,
+    }
+<
+
+
+USAGE                                      *rubikscube-rubiks-cube.nvim-usage*
+
+>vim
+    :Rubikscube
+<
+
+
+FEATURES                                *rubikscube-rubiks-cube.nvim-features*
+
+- All 18 standard moves: face turns (`U D L R F B`) + cube rotations (`x y z`), each in CW/CCW form
+- Built-in timer with pause/resume on `<Space>`
+- Solve detection — flash + popup with time, move count, and personal best
+- Persistent best time stored at `stdpath("data")/rubikscube/best.json`
+- Floating window by default; configurable to open in current buffer, split, or vsplit
+- Fully configurable keymaps; any binding can be disabled with `false`
+
+Inside the cube buffer:
+
+  Key       Action
+  --------- ------------------------------------
+  u / U     U face CW / CCW
+  d / D     D face CW / CCW
+  l / L     L face CW / CCW
+  r / R     R face CW / CCW
+  f / F     F face CW / CCW
+  b / B     B face CW / CCW
+  x / X     rotate whole cube around R axis
+  y / Y     rotate whole cube around U axis
+  z / Z     rotate whole cube around F axis
+  <Space>   start / pause timer
+  s         scramble (default 20 random moves)
+  <CR>      reset to solved (clears timer)
+  ?         toggle help popup
+  q         quit
+Lowercase = clockwise face turn (Singmaster notation); uppercase = prime
+(counter-clockwise).
+
+
+CONFIGURATION                      *rubikscube-rubiks-cube.nvim-configuration*
+
+Default:
+
+>lua
+    require("rubikscube").setup({
+      keymaps = {
+        -- Face turns: configure the lowercase letter; uppercase auto-binds the prime.
+        U = "u", D = "d", L = "l", R = "r", F = "f", B = "b",
+        -- Cube rotations: same convention.
+        x = "x", y = "y", z = "z",
+        -- Actions.
+        scramble = "s",
+        reset    = "<CR>",
+        timer    = "<Space>",
+        quit     = "q",
+        help     = "?",
+        -- Any entry above may be set to `false` to skip the binding entirely.
+      },
+      scramble_length = 20,   -- moves applied by the scramble action
+      persist_best    = true, -- set false to disable writing best.json (reads still work)
+      open_in         = "float", -- "float" | "current" | "split" | "vsplit"
+    })
+<
+
+
+COLORS                                    *rubikscube-rubiks-cube.nvim-colors*
+
+Sticker colors are exposed as the highlight groups:
+
+>
+    RubiksW   white
+    RubiksY   yellow
+    RubiksO   orange
+    RubiksR   red
+    RubiksG   green
+    RubiksB   blue
+<
+
+Override any of them from your colorscheme — they’re set with `default =
+true`, so user overrides survive a plugin reload:
+
+>vim
+    highlight RubiksO guibg=#ff8800 guifg=#000000
+<
+
+
+COMMANDS                                *rubikscube-rubiks-cube.nvim-commands*
+
+  Command       Description
+  ------------- -------------------------------------------------
+  :Rubikscube   Open the cube (no-op if a cube is already open)
+==============================================================================
+2. Links                                                    *rubikscube-links*
+
+1. *rubiks-cub*: assets/rubiks-cub.png
+
+Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
+
+vim:tw=78:ts=8:noet:ft=help:norl:
