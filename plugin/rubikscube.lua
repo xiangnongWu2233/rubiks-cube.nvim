@@ -10,10 +10,7 @@ end, { desc = "Open the Rubik's cube" })
 vim.api.nvim_create_user_command("RubikscubeSolve", function()
   local session = require("rubikscube").current_session()
   if not session then
-    vim.notify(
-      "rubikscube: no cube is open — run `:Rubikscube` first",
-      vim.log.levels.WARN
-    )
+    vim.notify("rubikscube: no cube is open — run `:Rubikscube` first", vim.log.levels.WARN)
     return
   end
   require("rubikscube.ui").make_solve_handler(session)()
