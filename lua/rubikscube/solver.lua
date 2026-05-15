@@ -51,7 +51,9 @@ function M.solve_async(state, callback)
   -- `kociemba <facelet_string>` prints the solution to stdout. Capture stderr
   -- separately so we can surface a useful message if the input is rejected
   -- (e.g. an inconsistent state would be reported there).
-  vim.system({ M.BINARY, input }, { text = true }, function(obj)
+  -- `timeout = 5000` guards against a hung subprocess — kociemba normally
+  -- returns in <100ms; 5 seconds is well past any real case.
+  vim.system({ M.BINARY, input }, { text = true, timeout = 5000 }, function(obj)
     vim.schedule(function()
       if obj.code ~= 0 then
         local err = (obj.stderr and obj.stderr ~= "") and obj.stderr

@@ -14,26 +14,22 @@ local cube = require("rubikscube.cube")
 local M = {}
 
 -- Inverse of cube.SOLVED_COLORS: color letter → face letter.
--- Built dynamically so a future palette change in cube.lua stays in sync.
-local function color_to_face()
-  local out = {}
-  for face, color in pairs(cube.SOLVED_COLORS) do
-    out[color] = face
-  end
-  return out
+-- Built once at module load — cube.SOLVED_COLORS is effectively immutable.
+local COLOR_TO_FACE = {}
+for face, color in pairs(cube.SOLVED_COLORS) do
+  COLOR_TO_FACE[color] = face
 end
 
 -- kociemba's expected face order.
 local FACE_ORDER = { "U", "R", "F", "D", "L", "B" }
 
 function M.to_string(state)
-  local c2f = color_to_face()
   local parts = {}
   for _, face in ipairs(FACE_ORDER) do
     local arr = state[face]
     for i = 1, 9 do
       local color = arr[i]
-      local letter = c2f[color]
+      local letter = COLOR_TO_FACE[color]
       if not letter then
         error("facelet: unknown color " .. tostring(color) .. " at " .. face .. "[" .. i .. "]")
       end

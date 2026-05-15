@@ -26,6 +26,13 @@ local function with_stub_kociemba(stub_body, fn)
   -- Give any in-flight async vim.system calls a chance to finish exec'ing
   -- before we yank the script out from under them. Polled, not slept — the
   -- "kociemba" binary is short-running so this returns quickly.
+  --
+  -- Implementation note: this relies on vim.system jobs being listed by
+  -- vim.api.nvim_list_chans() with an `argv` field. If a future Neovim
+  -- changes that representation, the poll becomes a no-op and tests would
+  -- regress with spurious "/bin/sh: ... No such file" errors in stderr
+  -- (still pass, but noisy). At that point, replace this with whatever the
+  -- new tracking API is.
   vim.wait(500, function()
     local handles = vim.api.nvim_list_chans()
     for _, ch in ipairs(handles) do

@@ -18,7 +18,8 @@ local uv = vim.uv or vim.loop
 -- Returns a handle table with :cancel() and :is_running().
 function M.play(opts)
   assert(opts and opts.state and opts.moves, "animate.play: state and moves required")
-  local tempo = opts.tempo_ms or 200
+  -- Clamp tempo to >= 1ms — otherwise `timer:start(0, 0, ...)` would busy-loop.
+  local tempo = math.max(1, opts.tempo_ms or 200)
   local handle = { _running = true, _idx = 0 }
   local timer = uv.new_timer()
 
