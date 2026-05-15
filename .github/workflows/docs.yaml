@@ -6,6 +6,7 @@ on:
     paths:
       - 'README.md'
       - '.github/workflows/docs.yaml'
+  workflow_dispatch:
 
 permissions:
   contents: write
