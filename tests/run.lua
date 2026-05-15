@@ -18,6 +18,7 @@ local suites = {
   "test_solver",
   "test_animate",
   "test_solver_integration",
+  "test_kociemba_e2e",
 }
 for _, name in ipairs(suites) do
   T.suite(name)
