@@ -11,7 +11,7 @@ package.path = cwd
 
 local T = require("test_helper")
 
-local suites = { "test_cube", "test_render", "test_ui" }
+local suites = { "test_cube", "test_render", "test_ui", "test_solver" }
 for _, name in ipairs(suites) do
   T.suite(name)
   local ok, err = pcall(require, name)
