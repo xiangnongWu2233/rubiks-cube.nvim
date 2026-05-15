@@ -4,6 +4,8 @@ local cube = require("rubikscube.cube")
 local render = require("rubikscube.render")
 local config = require("rubikscube.config")
 local best = require("rubikscube.best")
+local solver = require("rubikscube.solver")
+local animate = require("rubikscube.animate")
 
 local M = {}
 
@@ -62,6 +64,7 @@ local function build_hints()
   local entries = {
     { km.timer, "timer" },
     { km.scramble, "scramble" },
+    { km.solve, "solve" },
     { km.reset, "reset" },
     { km.help, "help" },
     { km.quit, "quit" },
@@ -106,6 +109,7 @@ local function help_text(_session)
   lines[#lines + 1] = "  Actions:"
   local action_rows = {
     { km.scramble, string.format("scramble (%d random moves)", cfg.scramble_length) },
+    { km.solve, "auto-solve (requires external `kociemba`)" },
     { km.timer, "start / stop the timer" },
     { km.reset, "reset to solved (clears timer)" },
     { km.help, "toggle this help" },
@@ -162,10 +166,22 @@ local function open_help(session)
   session.help_win = win
 end
 
+local function cancel_animation(session)
+  if session.anim_handle then
+    local h = session.anim_handle
+    session.anim_handle = nil
+    pcall(function()
+      h:cancel()
+    end)
+  end
+  session.auto_solving = false
+end
+
 -- Tear down session resources (timer, popups, help, autocmds). Idempotent —
 -- safe to call from both the `q` handler and a BufWipeout autocmd.
 local function teardown(session)
   close_help(session)
+  cancel_animation(session)
   if session.timer_handle then
     session.timer_handle:stop()
     session.timer_handle:close()
@@ -216,6 +232,11 @@ function M.new_session()
     -- Set true once a timed attempt has been celebrated; freezes the move
     -- counter and suppresses further popups until reset/scramble.
     solve_locked = false,
+    -- auto-solve animation (external kociemba). Mutually exclusive with
+    -- timed/manual play: while auto_solving is true, move_count is frozen
+    -- and the solve-celebration popup is suppressed.
+    auto_solving = false,
+    anim_handle = nil,
     -- autocmd group id; on_close fires once after the cube is torn down.
     autocmd_group = nil,
     on_close = nil,
@@ -346,6 +367,11 @@ end
 
 function M.make_move_handler(session, move)
   return function()
+    -- Pressing a move key during auto-solve cancels the animation and lets the
+    -- user take over: the keystroke still applies as a normal manual move.
+    if session.auto_solving then
+      cancel_animation(session)
+    end
     local was_solved = cube.is_solved(session.state)
     cube.apply(session.state, move)
     session.last_move = move
@@ -364,6 +390,7 @@ end
 
 function M.make_scramble_handler(session)
   return function()
+    cancel_animation(session)
     cube.scramble(session.state, config.get().scramble_length or 20)
     session.last_move = "scramble"
     session.move_count = 0
@@ -376,6 +403,7 @@ end
 
 function M.make_reset_handler(session)
   return function()
+    cancel_animation(session)
     cube.reset(session.state)
     session.last_move = "reset"
     session.move_count = 0
@@ -383,6 +411,63 @@ function M.make_reset_handler(session)
     session.was_solved = true
     session.solve_locked = false
     repaint_full(session)
+  end
+end
+
+function M.make_solve_handler(session)
+  return function()
+    if session.auto_solving then
+      vim.notify("rubikscube: auto-solve already running", vim.log.levels.INFO)
+      return
+    end
+    if cube.is_solved(session.state) then
+      vim.notify("rubikscube: cube is already solved", vim.log.levels.INFO)
+      return
+    end
+    if not solver.is_available() then
+      vim.notify("rubikscube: " .. solver.INSTALL_HINT, vim.log.levels.WARN)
+      return
+    end
+    session.auto_solving = true
+    session.last_move = "solving…"
+    repaint_full(session)
+    solver.solve_async(session.state, function(moves, err)
+      -- The user may have cancelled (manual move / scramble / reset / quit)
+      -- between the time the solver was kicked off and the time it returned.
+      -- If so, don't start an animation behind their back.
+      if not session.auto_solving then
+        return
+      end
+      if err then
+        session.auto_solving = false
+        session.last_move = nil
+        repaint_full(session)
+        vim.notify("rubikscube: " .. err, vim.log.levels.ERROR)
+        return
+      end
+      local tempo = (config.get().solver or {}).tempo_ms or 200
+      session.anim_handle = animate.play({
+        state = session.state,
+        moves = moves,
+        tempo_ms = tempo,
+        on_step = function(move)
+          session.last_move = move
+          session.was_solved = cube.is_solved(session.state)
+          repaint_full(session)
+        end,
+        on_done = function()
+          session.auto_solving = false
+          session.anim_handle = nil
+          session.was_solved = cube.is_solved(session.state)
+          repaint_full(session)
+        end,
+        on_cancel = function()
+          session.auto_solving = false
+          session.anim_handle = nil
+          repaint_full(session)
+        end,
+      })
+    end)
   end
 end
 
@@ -436,6 +521,7 @@ function M.open(session, on_close)
   local actions = config.get().keymaps
   local action_binds = {
     { actions.scramble, M.make_scramble_handler(session), "Rubik's: scramble" },
+    { actions.solve, M.make_solve_handler(session), "Rubik's: auto-solve" },
     { actions.reset, M.make_reset_handler(session), "Rubik's: reset" },
     { actions.timer, M.make_space_handler(session), "Rubik's: timer toggle" },
     { actions.quit, M.make_quit_handler(session), "Rubik's: quit" },

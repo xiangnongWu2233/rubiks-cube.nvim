@@ -20,10 +20,14 @@ M.defaults = {
     timer = "<Space>",
     quit = "q",
     help = "?",
+    solve = "S", -- auto-solve via external kociemba binary; false to disable
   },
   scramble_length = 20, -- moves applied by the scramble action
   persist_best = true, -- false → solves never write best.json (reads still work)
   open_in = "float", -- "float" | "current" | "split" | "vsplit"
+  solver = {
+    tempo_ms = 200, -- delay between animated moves during auto-solve
+  },
 }
 
 M.current = vim.deepcopy(M.defaults)
