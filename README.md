@@ -2,12 +2,21 @@
 
 A playable Rubik's cube inside Neovim — isometric ASCII render, full move set in Singmaster notation, a timer, and best-time persistence.
 
-![rubiks-cub](assets/rubiks-cub.png)
+![Rubik's cube being scrambled and auto-solved in Neovim](assets/demo.gif)
 
 ## Requirements
 
 - Neovim **0.10+** (uses `vim.uv`)
 - `termguicolors` enabled (recommended; falls back to cterm approximations otherwise)
+- **Optional** — [`kociemba`](https://github.com/muodov/kociemba) CLI on `$PATH`, required only for the auto-solve feature (`S` / `:RubikscubeSolve`). Install with one of:
+
+  ```sh
+  pipx install kociemba          # recommended: isolated venv
+  uv tool install kociemba       # if you use uv
+  pip install kociemba           # fallback
+  ```
+
+  Run `:checkhealth rubikscube` to verify your setup.
 
 ## Installation
 
@@ -39,14 +48,13 @@ use {
 
 ## Features
 
-- All 18 standard moves: face turns (`U D L R F B`) + cube rotations (`x y z`), each in CW/CCW form
-- Built-in timer with pause/resume on `<Space>`
+- All 18 standard moves: face turns + cube rotations, each in CW/CCW form
+- Built-in timer with pause/resume
 - Solve detection — flash + popup with time, move count, and personal best
 - Persistent best time stored at `stdpath("data")/rubikscube/best.json`
-- Floating window by default; configurable to open in current buffer, split, or vsplit
-- Fully configurable keymaps; any binding can be disabled with `false`
+- Optional auto-solve via the external `kociemba` CLI — see the [Auto-solve](#auto-solve) section
 
-Inside the cube buffer:
+## Controls
 
 | Key | Action |
 |---|---|
@@ -61,11 +69,18 @@ Inside the cube buffer:
 | `z` / `Z` | rotate whole cube around F axis |
 | `<Space>` | start / pause timer |
 | `s` | scramble (default 20 random moves) |
+| `S` | auto-solve (requires `kociemba` — see [Auto-solve](#auto-solve)) |
 | `<CR>` | reset to solved (clears timer) |
 | `?` | toggle help popup |
 | `q` | quit |
 
 Lowercase = clockwise face turn (Singmaster notation); uppercase = prime (counter-clockwise).
+
+## Auto-solve
+
+Press `S` (or `:RubikscubeSolve`) to animate a full solve of the current cube state. The plugin shells out to the external `kociemba` CLI ([install above](#requirements)) — Herbert Kociemba's two-phase algorithm, ~20 moves per solution, computed in milliseconds.
+
+Tempo defaults to 200 ms per move; tune via `solver.tempo_ms` in `setup()`. Pressing any face key during the animation cancels it and lets you take over. If `kociemba` isn't on `$PATH`, `S` shows a notification with install instructions — `:checkhealth rubikscube` will report what's missing.
 
 ## Configuration
 
@@ -84,11 +99,15 @@ require("rubikscube").setup({
     timer    = "<Space>",
     quit     = "q",
     help     = "?",
+    solve    = "S",  -- auto-solve via external `kociemba`
     -- Any entry above may be set to `false` to skip the binding entirely.
   },
   scramble_length = 20,   -- moves applied by the scramble action
   persist_best    = true, -- set false to disable writing best.json (reads still work)
   open_in         = "float", -- "float" | "current" | "split" | "vsplit"
+  solver = {
+    tempo_ms = 200, -- delay between animated moves during auto-solve
+  },
 })
 ```
 
@@ -116,3 +135,5 @@ highlight RubiksO guibg=#ff8800 guifg=#000000
 | Command | Description |
 |---|---|
 | `:Rubikscube` | Open the cube (no-op if a cube is already open) |
+| `:RubikscubeSolve` | Start the auto-solve animation on the open cube. No-op (with a warning) if no cube is open or if `kociemba` isn't installed. |
+| `:checkhealth rubikscube` | Diagnose plugin requirements: Neovim version, `termguicolors`, and the optional `kociemba` CLI. |
