@@ -22,4 +22,14 @@ function M.open()
   return M._session
 end
 
+-- Returns the currently-open session, or nil if no cube is open.
+-- Validates the underlying buffer too — a stale session with an invalidated
+-- buffer is treated as "not open".
+function M.current_session()
+  if M._session and M._session.buf and vim.api.nvim_buf_is_valid(M._session.buf) then
+    return M._session
+  end
+  return nil
+end
+
 return M

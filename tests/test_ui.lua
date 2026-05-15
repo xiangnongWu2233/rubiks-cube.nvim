@@ -1118,3 +1118,21 @@ T.test("open_in = 'current' replaces the current buffer (no new wins)", function
   ui.make_quit_handler(s)()
   config.reset()
 end)
+
+-- ============ public `rubikscube.current_session()` accessor ============
+
+T.test("current_session returns nil when no cube is open", function()
+  local rubiks = require("rubikscube")
+  rubiks._session = nil
+  T.eq(rubiks.current_session(), nil)
+end)
+
+T.test("current_session returns the session while a cube is open", function()
+  local rubiks = require("rubikscube")
+  config.reset()
+  local s = rubiks.open()
+  T.truthy(s)
+  T.truthy(rubiks.current_session() == s, "same session ref")
+  ui.make_quit_handler(s)()
+  T.eq(rubiks.current_session(), nil, "after quit, no session")
+end)
