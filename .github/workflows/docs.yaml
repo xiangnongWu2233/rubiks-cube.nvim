@@ -1,0 +1,31 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+      - '.github/workflows/docs.yaml'
+
+permissions:
+  contents: write
+
+jobs:
+  panvimdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate vimdoc from README
+        uses: kdheepak/panvimdoc@main
+        with:
+          vimdoc: rubikscube
+          version: "Neovim >= 0.10"
+          pandoc: README.md
+          toc: true
+          treesitter: true
+          demojify: false
+      - name: Commit generated docs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: auto-generate vimdoc from README"
+          file_pattern: doc/*.txt
