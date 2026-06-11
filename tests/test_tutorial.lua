@@ -60,11 +60,48 @@ T.test("tutorial: stepping to the end solves the cube and finishes", function()
   ui.make_quit_handler(s)()
 end)
 
+T.test("tutorial: manual move matching the expected one advances, no re-plan", function()
+  local s = open_tutorial_session(12)
+  local solution = s.tutorial.solution
+  local _, expected = tutorial._for_test.current_position(s.tutorial)
+  local idx_before = s.tutorial.move_idx
+  ui.make_move_handler(s, expected)()
+  T.truthy(tutorial.is_active(s))
+  T.eq(s.tutorial.solution, solution, "same plan object — no re-plan")
+  T.eq(s.tutorial.move_idx, idx_before + 1)
+  ui.make_quit_handler(s)()
+end)
+
+T.test("tutorial: following the panel by hand never loops and solves the cube", function()
+  -- Regression: re-planning after EVERY manual move could tell the user to
+  -- undo the move they just made, ping-ponging forever. Simulate a user who
+  -- always presses exactly the key the panel asks for.
+  local s = open_tutorial_session(13)
+  local steps = 0
+  while tutorial.is_active(s) do
+    steps = steps + 1
+    T.truthy(steps <= 400, "tutorial loops: " .. steps .. " manual moves without finishing")
+    local _, expected = tutorial._for_test.current_position(s.tutorial)
+    ui.make_move_handler(s, expected)()
+  end
+  T.truthy(require("rubikscube.lbl").is_solved_any_orientation(s.state))
+  ui.make_quit_handler(s)()
+end)
+
+T.test("tutorial: panel shows which key performs the next move", function()
+  local s = open_tutorial_session(14)
+  local lines = vim.api.nvim_buf_get_lines(s.tutorial.panel_buf, 0, -1, false)
+  local text = table.concat(lines, "\n")
+  T.truthy(text:match("Next move:.*— press %S+"), "key hint on next-move line")
+  ui.make_quit_handler(s)()
+end)
+
 T.test("tutorial: a manual move re-plans instead of breaking", function()
   local s = open_tutorial_session(5)
   ui.make_tutorial_step_handler(s)()
   ui.make_tutorial_step_handler(s)()
-  ui.make_move_handler(s, "R")()
+  local _, expected = tutorial._for_test.current_position(s.tutorial)
+  ui.make_move_handler(s, expected == "R" and "L" or "R")() -- guaranteed deviation
   T.truthy(tutorial.is_active(s))
   -- progress resets (empty leading stages may already be skipped over)
   T.eq(s.tutorial.move_idx, 1)

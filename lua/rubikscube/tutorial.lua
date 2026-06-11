@@ -37,11 +37,27 @@ end
 
 local ROTATIONS = { x = true, ["x'"] = true, y = true, ["y'"] = true, z = true, ["z'"] = true }
 
-local function describe_move(move)
-  if ROTATIONS[move] then
-    return move .. "  (turn the whole cube)"
+-- The key that performs `move` under the current keymap config: the
+-- configured letter is clockwise, its uppercase variant is prime.
+local function key_for(move)
+  local base = move:gsub("'", "")
+  local key = config.get().keymaps[base]
+  if not key then
+    return nil
   end
-  return move
+  return move:find("'") and key:upper() or key
+end
+
+local function describe_move(move)
+  local out = move
+  local key = key_for(move)
+  if key then
+    out = out .. "  — press " .. key
+  end
+  if ROTATIONS[move] then
+    out = out .. "  (turn the whole cube)"
+  end
+  return out
 end
 
 -- Advance (stage_idx, move_idx) past empty stages; returns nil when done.
@@ -84,9 +100,10 @@ local function panel_lines(session)
   end
   lines[#lines + 1] = string.format("  Stage progress: %d/%d", tut.move_idx - 1, #stage.moves)
   lines[#lines + 1] = ""
+  lines[#lines + 1] = "  Keys: lowercase = clockwise, SHIFT = ' (reverse)"
   local km = config.get().keymaps
   lines[#lines + 1] =
-    string.format("  [%s] do next move   [%s] leave tutorial", km.tutorial_step, km.tutorial)
+    string.format("  [%s] do it for me   [%s] leave tutorial", km.tutorial_step, km.tutorial)
   return lines, width
 end
 
@@ -187,6 +204,29 @@ end
 function M.finish(session)
   M.stop(session)
   vim.notify("rubikscube: tutorial complete — cube solved!", vim.log.levels.INFO)
+end
+
+-- The user made a move themselves. If it is exactly the move the tutorial
+-- asked for, advance the walkthrough — following along by hand is the whole
+-- point. Only a deviating move triggers a re-plan; re-planning on EVERY
+-- manual move would let the fresh plan open with the inverse of what the
+-- user just did, trapping obedient followers in an undo/redo loop.
+function M.on_manual_move(session, move)
+  local tut = session.tutorial
+  if not tut then
+    return
+  end
+  local _, expected = current_position(tut)
+  if expected == move then
+    tut.move_idx = tut.move_idx + 1
+    if not current_position(tut) then
+      M.finish(session)
+    else
+      repaint_panel(session)
+    end
+    return
+  end
+  M.refresh(session)
 end
 
 -- The cube changed outside the tutorial (manual move, scramble, reset):
