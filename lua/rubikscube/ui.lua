@@ -390,8 +390,9 @@ function M.make_move_handler(session, move)
       session.solve_locked = true
       celebrate_solve(session)
     end
-    -- A manual move during the tutorial is fine — re-plan from the new state.
-    tutorial.refresh(session)
+    -- A manual move during the tutorial: advance if it was the expected
+    -- move, re-plan otherwise.
+    tutorial.on_manual_move(session, move)
   end
 end
 
