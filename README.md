@@ -1,6 +1,6 @@
 # rubiks-cube.nvim
 
-A playable Rubik's cube inside Neovim — isometric ASCII render, full move set in Singmaster notation, a timer, and best-time persistence.
+A playable Rubik's cube inside Neovim — isometric ASCII render, full move set in Singmaster notation, a timer, a beginner tutorial, and an auto-solver.
 
 ![Rubik's cube being scrambled and auto-solved in Neovim](assets/demo.gif)
 
@@ -52,6 +52,7 @@ use {
 - Built-in timer with pause/resume
 - Solve detection — flash + popup with time, move count, and personal best
 - Persistent best time stored at `stdpath("data")/rubikscube/best.json`
+- Interactive beginner tutorial — learn to solve the cube layer by layer, no external tools — see the [Tutorial](#tutorial) section
 - Optional auto-solve via the external `kociemba` CLI — see the [Auto-solve](#auto-solve) section
 
 ## Controls
@@ -70,11 +71,24 @@ use {
 | `<Space>` | start / pause timer |
 | `s` | scramble (default 20 random moves) |
 | `S` | auto-solve (requires `kociemba` — see [Auto-solve](#auto-solve)) |
+| `t` | toggle the beginner tutorial (see [Tutorial](#tutorial)) |
+| `n` | tutorial: apply the next move |
 | `<CR>` | reset to solved (clears timer) |
 | `?` | toggle help popup |
 | `q` | quit |
 
 Lowercase = clockwise face turn (Singmaster notation); uppercase = prime (counter-clockwise).
+
+## Tutorial
+
+![Beginner tutorial walking through a full solve](assets/tutorial-demo.gif)
+
+Press `t` (or `:RubikscubeTutorial`) to learn to solve the cube yourself with the classic beginner layer-by-layer method. A side panel walks you through eight stages — white cross, white corners, middle layer, yellow cross, and so on — each with a short explanation and the exact next move in standard notation.
+
+- Press `n` to have the next move applied for you, or perform it yourself with the face keys — the tutorial recognizes the move and advances.
+- Made a different move instead? The walkthrough re-plans instantly from your new cube state.
+
+Solutions follow the human beginner method (~150–250 moves), using only the algorithms any beginner guide teaches — the `R U R' U'` trigger, `F R U R' U' F'`, Sune, and friends — so the moves you watch are the moves you'd learn.
 
 ## Auto-solve
 
@@ -100,6 +114,8 @@ require("rubikscube").setup({
     quit     = "q",
     help     = "?",
     solve    = "S",  -- auto-solve via external `kociemba`
+    tutorial      = "t", -- toggle the beginner tutorial
+    tutorial_step = "n", -- tutorial: apply the next move
     -- Any entry above may be set to `false` to skip the binding entirely.
   },
   scramble_length = 20,   -- moves applied by the scramble action
@@ -136,4 +152,5 @@ highlight RubiksO guibg=#ff8800 guifg=#000000
 |---|---|
 | `:Rubikscube` | Open the cube (no-op if a cube is already open) |
 | `:RubikscubeSolve` | Start the auto-solve animation on the open cube. No-op (with a warning) if no cube is open or if `kociemba` isn't installed. |
+| `:RubikscubeTutorial` | Toggle the beginner tutorial on the open cube. No-op (with a warning) if no cube is open. |
 | `:checkhealth rubikscube` | Diagnose plugin requirements: Neovim version, `termguicolors`, and the optional `kociemba` CLI. |
