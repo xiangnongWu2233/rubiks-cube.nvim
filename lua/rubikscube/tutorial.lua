@@ -124,6 +124,9 @@ local function repaint_panel(session)
     border = "rounded",
     style = "minimal",
     focusable = false,
+    -- Above the cube float: equal-zindex floats render the *focused* one on
+    -- top, which would hide this non-focusable panel behind the cube.
+    zindex = 60,
     title = " Tutorial ",
     title_pos = "center",
   }
