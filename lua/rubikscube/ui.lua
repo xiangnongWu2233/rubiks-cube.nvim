@@ -161,6 +161,10 @@ local function open_help(session)
     border = "rounded",
     style = "minimal",
     focusable = false,
+    -- Above the cube float: among equal-zindex floats Neovim raises the
+    -- *focused* one, which would hide this non-focusable overlay behind
+    -- the (focused) cube window.
+    zindex = 60,
   })
   session.help_buf = buf
   session.help_win = win
