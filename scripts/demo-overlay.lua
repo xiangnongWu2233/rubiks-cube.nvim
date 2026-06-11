@@ -30,6 +30,8 @@ local DEMO_KEYS = {
   -- Actions.
   s = true,
   S = true,
+  t = true,
+  n = true,
   q = true,
   ["<CR>"] = true,
   ["<Space>"] = true,
@@ -64,7 +66,9 @@ local function ensure_win()
     width = WIDTH,
     height = 1,
     row = 1,
-    col = vim.o.columns - 2,
+    -- vim.g.demo_overlay_right_offset shifts the box left, e.g. so the
+    -- tutorial tape can park it beside the tutorial panel instead of on it.
+    col = vim.o.columns - (vim.g.demo_overlay_right_offset or 2),
     border = "rounded",
     style = "minimal",
     focusable = false,
