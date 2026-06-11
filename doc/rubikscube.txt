@@ -1,5 +1,5 @@
 *rubikscube.txt*
-                                For Neovim >= 0.10    Last change: 2026 May 15
+                               For Neovim >= 0.10    Last change: 2026 June 11
 
 ==============================================================================
 Table of Contents                               *rubikscube-table-of-contents*
@@ -10,6 +10,7 @@ Table of Contents                               *rubikscube-table-of-contents*
   - Usage                                  |rubikscube-rubiks-cube.nvim-usage|
   - Features                            |rubikscube-rubiks-cube.nvim-features|
   - Controls                            |rubikscube-rubiks-cube.nvim-controls|
+  - Tutorial                            |rubikscube-rubiks-cube.nvim-tutorial|
   - Auto-solve                        |rubikscube-rubiks-cube.nvim-auto-solve|
   - Configuration                  |rubikscube-rubiks-cube.nvim-configuration|
   - Colors                                |rubikscube-rubiks-cube.nvim-colors|
@@ -20,7 +21,7 @@ Table of Contents                               *rubikscube-table-of-contents*
 1. rubiks-cube.nvim                              *rubikscube-rubiks-cube.nvim*
 
 A playable Rubik’s cube inside Neovim — isometric ASCII render, full move
-set in Singmaster notation, a timer, and best-time persistence.
+set in Singmaster notation, a timer, a beginner tutorial, and an auto-solver.
 
 
 REQUIREMENTS                        *rubikscube-rubiks-cube.nvim-requirements*
@@ -78,6 +79,7 @@ FEATURES                                *rubikscube-rubiks-cube.nvim-features*
 - Built-in timer with pause/resume
 - Solve detection — flash + popup with time, move count, and personal best
 - Persistent best time stored at `stdpath("data")/rubikscube/best.json`
+- Interactive beginner tutorial — learn to solve the cube layer by layer, no external tools — see the |rubikscube-tutorial| section
 - Optional auto-solve via the external `kociemba` CLI — see the |rubikscube-auto-solve| section
 
 
@@ -111,6 +113,11 @@ CONTROLS                                *rubikscube-rubiks-cube.nvim-controls*
   S                                   auto-solve (requires kociemba — see
                                       Auto-solve)
 
+  t                                   toggle the beginner tutorial (see
+                                      Tutorial)
+
+  n                                   tutorial: apply the next move
+
   <CR>                                reset to solved (clears timer)
 
   ?                                   toggle help popup
@@ -119,6 +126,22 @@ CONTROLS                                *rubikscube-rubiks-cube.nvim-controls*
   -----------------------------------------------------------------------
 Lowercase = clockwise face turn (Singmaster notation); uppercase = prime
 (counter-clockwise).
+
+
+TUTORIAL                                *rubikscube-rubiks-cube.nvim-tutorial*
+
+Press `t` (or `:RubikscubeTutorial`) to learn to solve the cube yourself with
+the classic beginner layer-by-layer method. A side panel walks you through
+eight stages — white cross, white corners, middle layer, yellow cross, and so
+on — each with a short explanation and the exact next move in standard
+notation.
+
+- Press `n` to have the next move applied for you, or perform it yourself with the face keys — the tutorial recognizes the move and advances.
+- Made a different move instead? The walkthrough re-plans instantly from your new cube state.
+
+Solutions follow the human beginner method (~150–250 moves), using only the
+algorithms any beginner guide teaches — the `R U R' U'` trigger, `F R U R' U'
+F'`, Sune, and friends — so the moves you watch are the moves you’d learn.
 
 
 AUTO-SOLVE                            *rubikscube-rubiks-cube.nvim-auto-solve*
@@ -152,6 +175,8 @@ Default:
         quit     = "q",
         help     = "?",
         solve    = "S",  -- auto-solve via external `kociemba`
+        tutorial      = "t", -- toggle the beginner tutorial
+        tutorial_step = "n", -- tutorial: apply the next move
         -- Any entry above may be set to `false` to skip the binding entirely.
       },
       scramble_length = 20,   -- moves applied by the scramble action
@@ -198,6 +223,10 @@ COMMANDS                                *rubikscube-rubiks-cube.nvim-commands*
                                       warning) if no cube is open or if
                                       kociemba isn’t installed.
 
+  :RubikscubeTutorial                 Toggle the beginner tutorial on the
+                                      open cube. No-op (with a warning)
+                                      if no cube is open.
+
   :checkhealth rubikscube             Diagnose plugin requirements:
                                       Neovim version, termguicolors, and
                                       the optional kociemba CLI.
@@ -206,6 +235,7 @@ COMMANDS                                *rubikscube-rubiks-cube.nvim-commands*
 2. Links                                                    *rubikscube-links*
 
 1. *Rubik’s cube being scrambled and auto-solved in Neovim*: assets/demo.gif
+2. *Beginner tutorial walking through a full solve*: assets/tutorial-demo.gif
 
 Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
 
