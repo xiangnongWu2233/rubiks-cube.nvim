@@ -120,13 +120,20 @@ end)
 T.test("integration: full handler animates moves then cube reaches solved state", function()
   -- Stub returns the *inverse* of a fixed scramble: applying U then U' returns to solved.
   with_stub_kociemba([[echo "U'"]], function()
+    local notes, restore = capture_notify()
     local session = fresh_session()
     cube.apply(session.state, "U") -- one move from solved
     T.falsy(cube.is_solved(session.state))
     drive_solve(session)
+    restore()
     T.falsy(session.auto_solving, "auto_solving cleared")
     T.truthy(cube.is_solved(session.state), "stub solution should solve the state")
     T.eq(session.last_move, "U'")
+    local saw = false
+    for _, n in ipairs(notes) do
+      saw = saw or (n.msg and n.msg:match("auto%-solve complete")) ~= nil
+    end
+    T.truthy(saw, "completion should emit an auto-solve complete notify")
   end)
 end)
 

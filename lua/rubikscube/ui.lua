@@ -475,6 +475,9 @@ function M.make_solve_handler(session)
           session.anim_handle = nil
           session.was_solved = cube.is_solved(session.state)
           repaint_full(session)
+          if session.was_solved then
+            vim.notify("rubikscube: auto-solve complete — cube solved!", vim.log.levels.INFO)
+          end
         end,
         on_cancel = function()
           session.auto_solving = false
