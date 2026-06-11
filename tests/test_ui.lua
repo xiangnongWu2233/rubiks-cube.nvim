@@ -145,6 +145,16 @@ T.test("help handler opens then toggles closed", function()
   ui.make_quit_handler(s)()
 end)
 
+T.test("help float stacks above the (focused) cube float", function()
+  -- Equal zindex would render the focused cube float over this non-focusable
+  -- overlay, hiding it. Regression for the covered-help bug.
+  local s = ui.open()
+  ui.make_help_handler(s)()
+  local zindex = vim.api.nvim_win_get_config(s.help_win).zindex
+  T.truthy(zindex and zindex > 50, "help zindex above default (got " .. tostring(zindex) .. ")")
+  ui.make_quit_handler(s)()
+end)
+
 T.test("repaint after move updates buffer (smoke test)", function()
   local s = ui.open()
   local before = vim.api.nvim_buf_get_lines(s.buf, 0, -1, false)
