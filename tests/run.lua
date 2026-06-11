@@ -16,6 +16,8 @@ local suites = {
   "test_render",
   "test_ui",
   "test_solver",
+  "test_lbl",
+  "test_tutorial",
   "test_animate",
   "test_solver_integration",
   "test_kociemba_e2e",

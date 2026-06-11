@@ -15,3 +15,12 @@ vim.api.nvim_create_user_command("RubikscubeSolve", function()
   end
   require("rubikscube.ui").make_solve_handler(session)()
 end, { desc = "Auto-solve the open Rubik's cube (requires `kociemba` CLI)" })
+
+vim.api.nvim_create_user_command("RubikscubeTutorial", function()
+  local session = require("rubikscube").current_session()
+  if not session then
+    vim.notify("rubikscube: no cube is open — run `:Rubikscube` first", vim.log.levels.WARN)
+    return
+  end
+  require("rubikscube.ui").make_tutorial_handler(session)()
+end, { desc = "Toggle the beginner-method solving tutorial" })
