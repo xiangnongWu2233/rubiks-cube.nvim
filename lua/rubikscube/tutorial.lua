@@ -57,14 +57,26 @@ local function current_position(tut)
   return nil
 end
 
+-- Prose wraps to a fixed target, but the window sizes to the longest
+-- rendered line so single-line content (legend, key hints) never wraps.
+local WRAP_WIDTH = 44
+
+local function content_width(lines)
+  local w = WRAP_WIDTH
+  for _, l in ipairs(lines) do
+    w = math.max(w, vim.fn.strdisplaywidth(l))
+  end
+  return w
+end
+
 local function panel_lines(session)
   local tut = session.tutorial
   local stage, next_move = current_position(tut)
-  local width = 44
+  local width = WRAP_WIDTH
   local lines = { "  Tutorial — beginner method", "" }
   if not stage then
     lines[#lines + 1] = "  Cube solved — well done!"
-    return lines, width
+    return lines, content_width(lines)
   end
   lines[#lines + 1] =
     string.format("  Stage %d/%d: %s", tut.stage_idx, #tut.solution.stages, stage.name)
@@ -88,7 +100,7 @@ local function panel_lines(session)
   local km = config.get().keymaps
   lines[#lines + 1] =
     string.format("  [%s] do it for me   [%s] leave tutorial", km.tutorial_step, km.tutorial)
-  return lines, width
+  return lines, content_width(lines)
 end
 
 local function close_panel(session)
