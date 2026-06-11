@@ -88,11 +88,12 @@ T.test("tutorial: following the panel by hand never loops and solves the cube", 
   ui.make_quit_handler(s)()
 end)
 
-T.test("tutorial: panel shows which key performs the next move", function()
+T.test("tutorial: panel shows pure notation plus a one-line key legend", function()
   local s = open_tutorial_session(14)
   local lines = vim.api.nvim_buf_get_lines(s.tutorial.panel_buf, 0, -1, false)
   local text = table.concat(lines, "\n")
-  T.truthy(text:match("Next move:.*— press %S+"), "key hint on next-move line")
+  T.falsy(text:match("press"), "no per-move key hint")
+  T.truthy(text:match("Keys: lowercase = clockwise"), "key legend present")
   ui.make_quit_handler(s)()
 end)
 

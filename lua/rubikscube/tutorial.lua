@@ -37,27 +37,11 @@ end
 
 local ROTATIONS = { x = true, ["x'"] = true, y = true, ["y'"] = true, z = true, ["z'"] = true }
 
--- The key that performs `move` under the current keymap config: the
--- configured letter is clockwise, its uppercase variant is prime.
-local function key_for(move)
-  local base = move:gsub("'", "")
-  local key = config.get().keymaps[base]
-  if not key then
-    return nil
-  end
-  return move:find("'") and key:upper() or key
-end
-
 local function describe_move(move)
-  local out = move
-  local key = key_for(move)
-  if key then
-    out = out .. "  — press " .. key
-  end
   if ROTATIONS[move] then
-    out = out .. "  (turn the whole cube)"
+    return move .. "  (turn the whole cube)"
   end
-  return out
+  return move
 end
 
 -- Advance (stage_idx, move_idx) past empty stages; returns nil when done.
