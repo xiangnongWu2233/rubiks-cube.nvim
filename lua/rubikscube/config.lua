@@ -21,6 +21,8 @@ M.defaults = {
     quit = "q",
     help = "?",
     solve = "S", -- auto-solve via external kociemba binary; false to disable
+    tutorial = "t", -- toggle the beginner-method tutorial; false to disable
+    tutorial_step = "n", -- apply the next tutorial move
   },
   scramble_length = 20, -- moves applied by the scramble action
   persist_best = true, -- false → solves never write best.json (reads still work)

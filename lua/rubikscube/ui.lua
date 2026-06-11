@@ -6,6 +6,7 @@ local config = require("rubikscube.config")
 local best = require("rubikscube.best")
 local solver = require("rubikscube.solver")
 local animate = require("rubikscube.animate")
+local tutorial = require("rubikscube.tutorial")
 
 local M = {}
 
@@ -34,7 +35,7 @@ M.KEYMAP = {
   { "Z", "z'" },
 }
 
-M.ACTION_KEYS = { "s", "<CR>", "q", "?" } -- non-move keys (defaults)
+M.ACTION_KEYS = { "s", "<CR>", "q", "?", "t", "n" } -- non-move keys (defaults)
 
 -- Build the active move-keymap from current config. For each face/rotation letter,
 -- the lowercase variant binds CW and the uppercase variant binds prime (CCW).
@@ -65,6 +66,7 @@ local function build_hints()
     { km.timer, "timer" },
     { km.scramble, "scramble" },
     { km.solve, "solve" },
+    { km.tutorial, "tutorial" },
     { km.reset, "reset" },
     { km.help, "help" },
     { km.quit, "quit" },
@@ -110,6 +112,8 @@ local function help_text(_session)
   local action_rows = {
     { km.scramble, string.format("scramble (%d random moves)", cfg.scramble_length) },
     { km.solve, "auto-solve (requires external `kociemba`)" },
+    { km.tutorial, "tutorial: learn to solve it yourself" },
+    { km.tutorial_step, "tutorial: apply the next move" },
     { km.timer, "start / stop the timer" },
     { km.reset, "reset to solved (clears timer)" },
     { km.help, "toggle this help" },
@@ -186,6 +190,7 @@ end
 local function teardown(session)
   close_help(session)
   cancel_animation(session)
+  tutorial.stop(session)
   if session.timer_handle then
     session.timer_handle:stop()
     session.timer_handle:close()
@@ -389,6 +394,8 @@ function M.make_move_handler(session, move)
       session.solve_locked = true
       celebrate_solve(session)
     end
+    -- A manual move during the tutorial is fine — re-plan from the new state.
+    tutorial.refresh(session)
   end
 end
 
@@ -402,12 +409,14 @@ function M.make_scramble_handler(session)
     session.was_solved = cube.is_solved(session.state)
     session.solve_locked = false
     repaint_full(session)
+    tutorial.refresh(session)
   end
 end
 
 function M.make_reset_handler(session)
   return function()
     cancel_animation(session)
+    tutorial.stop(session)
     cube.reset(session.state)
     session.last_move = "reset"
     session.move_count = 0
@@ -432,6 +441,7 @@ function M.make_solve_handler(session)
       vim.notify("rubikscube: " .. solver.INSTALL_HINT, vim.log.levels.WARN)
       return
     end
+    tutorial.stop(session) -- auto-solve takes over from a running tutorial
     session.auto_solving = true
     session.last_move = "solving…"
     repaint_full(session)
@@ -472,6 +482,26 @@ function M.make_solve_handler(session)
         end,
       })
     end)
+  end
+end
+
+-- Toggle the beginner-method tutorial. Mutually exclusive with auto-solve.
+function M.make_tutorial_handler(session)
+  return function()
+    if tutorial.is_active(session) then
+      tutorial.stop(session)
+      return
+    end
+    cancel_animation(session)
+    tutorial.start(session, function()
+      repaint_full(session)
+    end)
+  end
+end
+
+function M.make_tutorial_step_handler(session)
+  return function()
+    tutorial.step(session)
   end
 end
 
@@ -526,6 +556,8 @@ function M.open(session, on_close)
   local action_binds = {
     { actions.scramble, M.make_scramble_handler(session), "Rubik's: scramble" },
     { actions.solve, M.make_solve_handler(session), "Rubik's: auto-solve" },
+    { actions.tutorial, M.make_tutorial_handler(session), "Rubik's: tutorial" },
+    { actions.tutorial_step, M.make_tutorial_step_handler(session), "Rubik's: tutorial next move" },
     { actions.reset, M.make_reset_handler(session), "Rubik's: reset" },
     { actions.timer, M.make_space_handler(session), "Rubik's: timer toggle" },
     { actions.quit, M.make_quit_handler(session), "Rubik's: quit" },
